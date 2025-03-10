@@ -33,7 +33,13 @@ public sealed class App
             tokenSource.Cancel();
             context.Cancel = true;
         });
-        
-        await _server.StartAsync(tokenSource.Token);
+        try
+        {
+            await _server.StartAsync(tokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Server stopped");
+        }
     }
 }

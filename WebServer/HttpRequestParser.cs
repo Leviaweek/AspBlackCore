@@ -2,8 +2,10 @@ using System.Buffers;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using WebServer.Attributes;
 using WebServer.Exceptions;
+using WebServer.Extensions;
 
 namespace WebServer;
 
@@ -57,7 +59,8 @@ public sealed class HttpRequestParser
 
             firstLine = ValidateLine(firstLine);
 
-            if (firstLine.Split(' ') is not { Length: 3 } parts) throw new ParseRequestException("Invalid request line");
+            if (firstLine.Split(' ', StringSplitOptions.RemoveEmptyEntries) is not { Length: 3 } parts)
+                throw new ParseRequestException("Invalid request line");
             
             var (method, fullPath, version) = (parts[0], parts[1], parts[2]);
             
@@ -71,16 +74,23 @@ public sealed class HttpRequestParser
 
             var headers = await ParseHeadersAsync(stream, token);
 
-            if (!headers.TryGetValue("content-type", out var contentType)) throw new ParseRequestException("Missing Content-Type header");
+            byte[] bytes;
 
-            if (!_contentTypeHandlers.TryGetValue(contentType, out var handler))
+            if (headers.TryGetValue("content-type", out var contentType))
             {
-                throw new ParseRequestException("Unsupported Content-Type");
-            }
+                if (!_contentTypeHandlers.TryGetValue(contentType, out var handler))
+                {
+                    throw new ParseRequestException("Unsupported Content-Type");
+                }
 
-            var bytes = await handler(stream, headers, token);
+                bytes = await handler(stream, headers, token);
+            }
+            else
+            {
+                bytes = [];
+            }
             
-            return new Request(method, path, version, queries, headers, Encoding.UTF8.GetString(bytes));
+            return new Request(method, path, version, queries, headers, bytes);
     }
 
     private static async Task<Dictionary<string, string>> ParseHeadersAsync(Stream stream, CancellationToken cancellationToken)
@@ -138,7 +148,7 @@ public sealed class HttpRequestParser
         var bytes = new byte[contentLength];
         
         await stream.ReadExactlyAsync(bytes, cancellationToken);
-        
+
         return bytes;
     }
 }

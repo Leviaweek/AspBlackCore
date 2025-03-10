@@ -1,4 +1,4 @@
-namespace BlackDependencyInjection;
+namespace BlackDependencyInjection.Exceptions;
 
 public class ServiceNotFoundException : DependencyInjectionException
 {

@@ -6,4 +6,4 @@ public sealed record Request(
     string Version,
     Dictionary<string, string> Queries,
     Dictionary<string, string> Headers,
-    string Body);
+    byte[] Body);

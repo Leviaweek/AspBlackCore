@@ -7,16 +7,14 @@ namespace WebServer;
 
 public sealed class ResponseBuilder
 {
-    private const string HeaderTemplate = "HTTP/1.1 {0} {1}";
+    private static readonly byte[] HttpVersion = "HTTP/1.1"u8.ToArray();
     private readonly Dictionary<string, string> _headers = new();
-    private byte[] _body = [];
-    private int _responseSize = 0;
+    private string _body = string.Empty;
 
     private HttpStatusCode _statusCode = HttpStatusCode.Ok;
 
     public ResponseBuilder AddHeader(string key, string value)
     {
-        _responseSize += key.Length + value.Length + 4;
         _headers[key] = value;
         return this;
     }
@@ -37,30 +35,65 @@ public sealed class ResponseBuilder
         return this;
     }
 
-    public ResponseBuilder SetJsonBody(byte[] body)
+    public ResponseBuilder SetJsonBody(string body)
     {
         AddHeader("Content-Type", "application/json");
-        AddHeader("Content-Length", body.Length.ToString());
+        AddHeader("Content-Length", Encoding.UTF8.GetByteCount(body).ToString());
         _body = body;
         return this;
     }
-
-    public byte[] Build()
+    
+    public async Task WriteAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        var response = new StringBuilder();
-        response.AppendLine(string.Format(HeaderTemplate, (int)_statusCode, _statusCode.GetDescription()));
+        await stream.WriteAsync(HttpVersion, cancellationToken);
+        stream.WriteByte((byte)' ');
+
+        var statusCode = (int) _statusCode;
+        var firstChar = (byte)(statusCode / 100 + '0');
+        var secondChar = (byte)(statusCode / 10 % 10 + '0');
+        var thirdChar = (byte)(statusCode % 10 + '0');
+        
+        stream.WriteByte(firstChar);
+        stream.WriteByte(secondChar);
+        stream.WriteByte(thirdChar);
+        
+        stream.WriteByte((byte)' ');
+        
+        var statusDescription = _statusCode.GetDescription();
+        
+        WriteString(stream, statusDescription);
+        
+        AddEndLine(stream);
         
         foreach (var (key, value) in _headers)
         {
-            response.AppendLine($"{key}: {value}");
+            WriteString(stream, key);
+            stream.WriteByte((byte)':');
+            stream.WriteByte((byte)' ');
+            WriteString(stream, value);
+            AddEndLine(stream);
         }
         
-        response.AppendLine();
-        if (_body.Length > 0)
+        AddEndLine(stream);
+        
+        if (!string.IsNullOrEmpty(_body))
         {
-            response.AppendLine(Encoding.UTF8.GetString(_body));
+            WriteString(stream, _body);
         }
-        
-        return Encoding.UTF8.GetBytes(response.ToString());
+    }
+
+    private static void WriteString(Stream stream, string @string)
+    {
+        for (var index = 0; index < @string.Length; index++)
+        {
+            var character = @string[index];
+            stream.WriteByte((byte)character);
+        }
+    }
+
+    private static void AddEndLine(Stream stream)
+    {
+        stream.WriteByte((byte)'\r');
+        stream.WriteByte((byte)'\n');
     }
 }

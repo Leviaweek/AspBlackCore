@@ -1,7 +1,7 @@
 using System.Text;
 using WebServer.Exceptions;
 
-namespace WebServer;
+namespace WebServer.Extensions;
 
 public static class StreamExtensions
 {

@@ -26,23 +26,8 @@ public sealed class WebServer: IDisposable
 
     public WebServer(IBlackServiceProvider serviceProvider): this(IPAddress.Loopback, 8080, serviceProvider) { }
 
-    public WebServer(string ip, int port, IBlackServiceProvider serviceProvider)
-    {
-        ServiceProvider = serviceProvider;
-        _requestParser = new HttpRequestParser(1024 * 1024 * 25);
-
-        if (IPAddress.TryParse(ip, out var result))
-        {
-            _listener = new TcpListener(result, port);
-        }
-
-        else
-        {
-            var addresses = Dns.GetHostEntry(ip).AddressList;
-            if (addresses.Length == 0) throw new ArgumentException("Invalid IP address");
-            _listener = new TcpListener(addresses[0], port);
-        }
-    }
+    public WebServer(string ip, int port, IBlackServiceProvider serviceProvider) : this(IPAddress.Parse(ip), port,
+        serviceProvider) { }
     
     public WebServer(int port, IBlackServiceProvider serviceProvider): this(IPAddress.Loopback, port, serviceProvider) {}
     
@@ -73,21 +58,19 @@ public sealed class WebServer: IDisposable
 
             var response = CreateResponse(request);
             
-            await stream.WriteAsync(response.Build(), cancellationToken);
+            await response.WriteAsync(stream, cancellationToken);
         }
         catch (BodyTooLargeException)
         {
-            var error = new ResponseBuilder()
+            await new ResponseBuilder()
                 .SetStatusCode(413)
-                .Build();
-            await stream.WriteAsync(error, cancellationToken);
+                .WriteAsync(stream, cancellationToken);
         }
         catch (BadContentLengthException)
         {
-            var error = new ResponseBuilder()
+            await new ResponseBuilder()
                 .SetStatusCode(400)
-                .Build();
-            await stream.WriteAsync(error, cancellationToken);
+                .WriteAsync(stream, cancellationToken);
         }
         finally
         {
@@ -110,12 +93,12 @@ public sealed class WebServer: IDisposable
         if (!InsertParameters(parameters, request, args)) return new ResponseBuilder().SetStatusCode(400);
         
         var responseType = handler.Method.ReturnType;
-            
+
         var responseObject = handler.Method.Invoke(handler.Target, args);
 
         var response = new ResponseBuilder().SetStatusCode(200);
         
-        if (responseType != typeof(void)) response.SetJsonBody(JsonSerializer.SerializeToUtf8Bytes(responseObject));
+        if (responseType != typeof(void)) response.SetJsonBody(JsonSerializer.Serialize(responseObject));
 
         return response;
     }

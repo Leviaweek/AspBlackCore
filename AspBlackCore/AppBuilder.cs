@@ -27,7 +27,7 @@ public sealed class AppBuilder
         Services.AddScoped<CancellationTokenSource>();
 
         var serialized = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(
-            Path.Combine(AppContext.BaseDirectory, @"..\..\..\", AppSettings.FileName)));
+            Path.Combine(Directory.GetCurrentDirectory(), AppSettings.FileName)));
 
         WebServer.WebServer server;
         if (serialized is null)
