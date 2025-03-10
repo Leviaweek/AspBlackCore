@@ -26,9 +26,18 @@ public sealed class AppBuilder
         Services.AddSingleton<IBlackServiceProvider>(serviceProvider);
         Services.AddScoped<CancellationTokenSource>();
 
-        var serialized = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(
-            Path.Combine(Directory.GetCurrentDirectory(), AppSettings.FileName)));
-
+        var filePath = Path.Combine(Directory.GetCurrentDirectory(), AppSettings.FileName);
+        Dictionary<string, JsonElement>? serialized;
+        if (!File.Exists(filePath))
+        {
+            serialized = null;
+        }
+        else
+        {
+            var fileContent = File.ReadAllText(filePath);
+            serialized = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(fileContent);
+        }
+        
         WebServer.WebServer server;
         if (serialized is null)
         {
