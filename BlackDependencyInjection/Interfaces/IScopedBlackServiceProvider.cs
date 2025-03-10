@@ -1,0 +1,3 @@
+namespace BlackDependencyInjection.Interfaces;
+
+public interface IScopedBlackServiceProvider: IBlackServiceProvider, IDisposable;

@@ -1,0 +1,6 @@
+{
+  "webServerSettings": {
+    "ipAddress": "localhost",
+    "port": 10000
+  }
+}
