@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using BlackDependencyInjection.Interfaces;
 
 namespace BlackDependencyInjection;

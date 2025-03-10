@@ -1,11 +1,8 @@
-using System.Buffers;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
-using System.Text.Json;
 using WebServer.Attributes;
 using WebServer.Exceptions;
 using WebServer.Extensions;
+using WebServer.Models;
 
 namespace WebServer;
 
@@ -25,11 +22,8 @@ public sealed class HttpRequestParser
         RegisterHandlers();
     }
 
-    private void RegisterContentTypeHandler(string contentType, ParseBodyAsyncDelegate handler)
-    {
+    private void RegisterContentTypeHandler(string contentType, ParseBodyAsyncDelegate handler) =>
         _contentTypeHandlers[contentType] = handler;
-        Console.WriteLine($"Registered handler for {contentType}");
-    }
 
     private void RegisterHandlers()
     {

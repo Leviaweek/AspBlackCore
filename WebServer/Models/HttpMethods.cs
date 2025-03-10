@@ -1,6 +1,6 @@
 using HttpMethod = WebServer.Enums.HttpMethod;
 
-namespace WebServer;
+namespace WebServer.Models;
 
 public static class HttpMethods
 {

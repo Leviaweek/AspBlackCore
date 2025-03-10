@@ -1,11 +1,10 @@
-﻿using System.Buffers;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using BlackDependencyInjection.Interfaces;
 using WebServer.Exceptions;
+using WebServer.Models;
 
 namespace WebServer;
 
@@ -142,5 +141,3 @@ public sealed class WebServer: IDisposable
     
     ~WebServer() => Dispose();
 }
-
-public record struct MethodEndpoint(string Method, string Endpoint);

@@ -1,4 +1,4 @@
-namespace WebServer;
+namespace WebServer.Models;
 
 public sealed record Request(
     string Method,

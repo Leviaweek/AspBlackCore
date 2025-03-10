@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using BlackDependencyInjection;
 using WebServer;
+using WebServer.Models;
 
 namespace AspBlackCore;
 
