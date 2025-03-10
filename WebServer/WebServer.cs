@@ -97,7 +97,7 @@ public sealed class WebServer: IDisposable
 
         var response = new ResponseBuilder().SetStatusCode(200);
         
-        if (responseType != typeof(void)) response.SetJsonBody(JsonSerializer.Serialize(responseObject));
+        if (responseType != typeof(void)) response.SetJsonBody(JsonSerializer.SerializeToUtf8Bytes(responseObject));
 
         return response;
     }

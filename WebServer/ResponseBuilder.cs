@@ -8,7 +8,7 @@ public sealed class ResponseBuilder
 {
     private static readonly byte[] HttpVersion = "HTTP/1.1"u8.ToArray();
     private readonly Dictionary<string, string> _headers = new();
-    private string _body = string.Empty;
+    private byte[] _body = [];
 
     private HttpStatusCode _statusCode = HttpStatusCode.Ok;
 
@@ -34,10 +34,10 @@ public sealed class ResponseBuilder
         return this;
     }
 
-    public ResponseBuilder SetJsonBody(string body)
+    public ResponseBuilder SetJsonBody(byte[] body)
     {
         AddHeader("Content-Type", "application/json");
-        AddHeader("Content-Length", Encoding.UTF8.GetByteCount(body).ToString());
+        AddHeader("Content-Length", body.Length.ToString());
         _body = body;
         return this;
     }
@@ -60,28 +60,28 @@ public sealed class ResponseBuilder
         
         var statusDescription = _statusCode.GetDescription();
         
-        WriteString(stream, statusDescription);
+        WriteAsciiString(stream, statusDescription);
         
         AddEndLine(stream);
         
         foreach (var (key, value) in _headers)
         {
-            WriteString(stream, key);
+            WriteAsciiString(stream, key);
             stream.WriteByte((byte)':');
             stream.WriteByte((byte)' ');
-            WriteString(stream, value);
+            WriteAsciiString(stream, value);
             AddEndLine(stream);
         }
         
         AddEndLine(stream);
         
-        if (!string.IsNullOrEmpty(_body))
+        if (_body.Length > 0)
         {
-            WriteString(stream, _body);
+            await stream.WriteAsync(_body, cancellationToken);
         }
     }
 
-    private static void WriteString(Stream stream, string @string)
+    private static void WriteAsciiString(Stream stream, string @string)
     {
         for (var index = 0; index < @string.Length; index++)
         {
