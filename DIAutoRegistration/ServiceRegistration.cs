@@ -32,9 +32,8 @@ public static class ServiceRegistration
     private static FactoryMethodAttribute? TryGetFactoryMethodAttribute(Type serviceType)
     {
         var method = serviceType.GetMethod(FactoryMethodAttribute.Name, BindingFlags.Static | BindingFlags.Public);
-
-        var attribute = method?.GetCustomAttribute<FactoryMethodAttribute>();
-        if (attribute is null) return null;
+        
+        if (method is null) return null;
         
         if (method!.ReturnType == serviceType &&
             method.GetParameters() is
@@ -43,7 +42,7 @@ public static class ServiceRegistration
             }] &&
             parameterType == typeof(IBlackServiceProvider))
         {
-            return attribute;
+            return method.GetCustomAttribute<FactoryMethodAttribute>();;
         }
         
         throw new InvalidOperationException(
@@ -54,8 +53,8 @@ public static class ServiceRegistration
     {
         if (factoryAttribute is null) return null;
         
-        var factoryMethod = serviceType.GetMethod(FactoryMethodAttribute.Name);
-        if (factoryMethod is null) return null;
+        var factoryMethod = serviceType.GetMethod(FactoryMethodAttribute.Name)!;
+
         var factoryDelegate = (Func<IBlackServiceProvider, object>)Delegate.CreateDelegate(
             typeof(Func<IBlackServiceProvider, object>),null ,factoryMethod);
 
@@ -89,7 +88,7 @@ public static class ServiceRegistration
 
         if (serviceType is null)
         {
-            var interfaces = implementationType.GetInterfaces();
+            var interfaces = implementationType.GetInterfaces().Where(t => t.Assembly != typeof(object).Assembly).ToArray();
 
             if (interfaces.Length != 0)
             {
@@ -98,7 +97,7 @@ public static class ServiceRegistration
             
             var baseType = implementationType.BaseType;
             
-            if (baseType == typeof(object))
+            if (baseType == typeof(object) || baseType is null)
                 return implementationType;
             
             throw new InvalidOperationException(
