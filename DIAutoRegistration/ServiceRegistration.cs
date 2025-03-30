@@ -1,4 +1,5 @@
 using System.Reflection;
+using BlackDependencyInjection;
 using BlackDependencyInjection.Interfaces;
 using DIAutoRegistration.Attributes;
 
@@ -20,21 +21,11 @@ public static class ServiceRegistration
 
             var factory = TryGetFactory(factoryAttribute, serviceType);
 
-            switch (attribute)
-            {
-                case SingletonServiceAttribute:
-                    services.AddSingleton(baseType, serviceType, factory);
-                    break;
-                case TransientServiceAttribute:
-                    services.AddTransient(baseType, serviceType, factory);
-                    break;
-                case ScopedServiceAttribute:
-                    services.AddScoped(baseType, serviceType, factory);
-                    break;
-                default:
-                    throw new NotSupportedException(
-                        $"The service type {serviceType} has an unsupported ServiceAttribute.");
-            }
+            services[baseType] = new ServiceDescriptor(
+                baseType,
+                serviceType,
+                attribute.Lifetime,
+                factory);
         }
     }
 
