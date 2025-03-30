@@ -24,6 +24,8 @@ public sealed class AppBuilder
     {
         var serviceProvider = new RootBlackServiceProvider(Services);
         Services.AddSingleton<IBlackServiceProvider>(serviceProvider);
+        Services.AddSingleton(Services);
+        
         Services.AddScoped<CancellationTokenSource>();
 
         var filePath = Path.Combine(Directory.GetCurrentDirectory(), AppSettings.FileName);

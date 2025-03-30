@@ -53,7 +53,7 @@ public sealed class HttpRequestParser
 
             firstLine = ValidateLine(firstLine);
 
-            if (firstLine.Split(' ', StringSplitOptions.RemoveEmptyEntries) is not { Length: 3 } parts)
+            if (firstLine.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries) is not { Length: 3 } parts)
                 throw new ParseRequestException("Invalid request line");
             
             var (method, fullPath, version) = (parts[0], parts[1], parts[2]);
@@ -94,7 +94,7 @@ public sealed class HttpRequestParser
             
         while (!string.IsNullOrWhiteSpace(line = await stream.ReadLineAsync(cancellationToken: cancellationToken)))
         {
-            if (line.Split(": ") is not { Length: 2 } header) throw new ParseRequestException("Invalid header");
+            if (line.Split(": ", 2) is not { Length: 2 } header) throw new ParseRequestException("Invalid header");
 
             headers[header[0]] = header[1];
         }
@@ -110,7 +110,7 @@ public sealed class HttpRequestParser
         
         foreach (var query in pathSegments[1].Split('&'))
         {
-            if (query.Split('=') is not { Length: 2 } queryParts) throw new ParseRequestException("Invalid query");
+            if (query.Split('=', 2) is not { Length: 2 } queryParts) throw new ParseRequestException("Invalid query");
             queries[queryParts[0]] = queryParts[1];
         }
         return queries;

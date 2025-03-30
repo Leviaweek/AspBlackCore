@@ -8,96 +8,60 @@ public sealed class BlackServiceCollection: IBlackServiceCollection
 {
     internal readonly Dictionary<Type, ServiceDescriptor> ServiceDescriptors = new();
     
-    private void AddDescriptor<TService, TImplementation>(ServiceLifetime lifetime, Func<IBlackServiceProvider, TService>? factory = null)
+    private void AddDescriptor<TService, TImplementation>(ServiceLifetime lifetime, Func<IBlackServiceProvider, object>? factory = null)
         where TService : class where TImplementation : class, TService =>
         ServiceDescriptors[typeof(TService)] = new ServiceDescriptor(typeof(TService),
             typeof(TImplementation),
             lifetime,
             factory);
 
-    public void AddSingleton<TService, TImplementation>()
-        where TService : class
-        where TImplementation : class, TService => AddDescriptor<TService, TImplementation>(ServiceLifetime.Singleton);
-    
-    public void AddSingleton<TService>() where TService : class =>
-        AddDescriptor<TService, TService>(ServiceLifetime.Singleton);
-
     public void AddSingleton<TService>(TService service) where TService : class =>
         AddDescriptor<TService, TService>(ServiceLifetime.Singleton, _ => service);
 
-    public void AddSingleton<TService>(Func<IBlackServiceProvider, TService> factory) where TService : class => 
+    public void AddSingleton<TService>(Func<IBlackServiceProvider, TService>? factory = null) where TService : class => 
         AddDescriptor<TService, TService>(ServiceLifetime.Singleton, factory);
-
-    public void AddSingleton<TService>(Func<TService> factory) where TService : class =>
-        AddSingleton<TService>(_ => factory());
-
-    public void AddSingleton<TService, TImplementation>(Func<IBlackServiceProvider, TService> factory)
+    
+    public void AddSingleton<TService, TImplementation>(Func<IBlackServiceProvider, TService>? factory = null)
         where TService : class
         where TImplementation : class, TService =>
         AddDescriptor<TService, TImplementation>(ServiceLifetime.Singleton, factory);
 
-    public void AddSingleton<TService, TImplementation>(Func<TService> factory) where TService : class where TImplementation : class, TService =>
-        AddSingleton<TService, TImplementation>(_ => factory());
-
-    public void AddSingleton(Type serviceType, Type implementationType) =>
+    public void AddSingleton(Type serviceType, Type implementationType, Func<IBlackServiceProvider, object>? factory = null) =>
         ServiceDescriptors[serviceType] =
-            new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Singleton);
+            new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Singleton, factory);
 
-    public void AddSingleton(Type serviceType) => AddSingleton(serviceType, serviceType);
-
-    public void AddScoped<TService, TImplementation>() where TService : class where TImplementation : class, TService =>
-        AddDescriptor<TService, TImplementation>(ServiceLifetime.Scoped);
-
-    public void AddScoped<TService, TImplementation>(Func<IBlackServiceProvider, TService> factory)
+    public void AddSingleton(Type serviceType, Func<IBlackServiceProvider, object>? factory = null) =>
+        AddSingleton(serviceType, serviceType, factory);
+    
+    public void AddScoped<TService, TImplementation>(Func<IBlackServiceProvider, TService>? factory = null)
         where TService : class where TImplementation : class, TService =>
         AddDescriptor<TService, TImplementation>(ServiceLifetime.Scoped, factory);
     
 
-    public void AddScoped<TService, TImplementation>(Func<TService> factory)
-        where TService : class where TImplementation : class, TService =>
-        AddScoped<TService, TImplementation>(_ => factory());
-
-    public void AddScoped<TService>() where TService : class =>
-        AddDescriptor<TService, TService>(ServiceLifetime.Scoped);
-
-    public void AddScoped<TService>(Func<IBlackServiceProvider, TService> factory) where TService : class =>
+    public void AddScoped<TService>(Func<IBlackServiceProvider, TService>? factory = null) where TService : class =>
         AddDescriptor<TService, TService>(ServiceLifetime.Scoped, factory);
 
-    public void AddScoped<TService>(Func<TService> factory) where TService : class =>
-        AddScoped<TService>(_ => factory());
-
-    public void AddScoped(Type serviceType, Type implementationType) =>
+    public void AddScoped(Type serviceType, Type implementationType, Func<IBlackServiceProvider, object>? factory = null) =>
         ServiceDescriptors[serviceType] =
-            new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Scoped);
+            new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Scoped, factory);
 
-    public void AddScoped(Type serviceType) => AddScoped(serviceType, serviceType);
+    public void AddScoped(Type serviceType, Func<IBlackServiceProvider, object>? factory = null) =>
+        AddScoped(serviceType, serviceType, factory);
+    
 
-    public void AddTransient<TService, TImplementation>()
-        where TService : class where TImplementation : class, TService =>
-        AddDescriptor<TService, TImplementation>(ServiceLifetime.Transient);
-
-    public void AddTransient<TService>() where TService : class =>
-        AddDescriptor<TService, TService>(ServiceLifetime.Transient);
-
-    public void AddTransient<TService>(Func<IBlackServiceProvider, TService> factory) where TService : class =>
+    public void AddTransient<TService>(Func<IBlackServiceProvider, TService>? factory = null) where TService : class =>
         AddDescriptor<TService, TService>(ServiceLifetime.Transient, factory);
 
-    public void AddTransient<TService>(Func<TService> factory) where TService : class =>
-        AddTransient<TService>(_ => factory());
-
-    public void AddTransient<TService, TImplementation>(Func<IBlackServiceProvider, TService> factory) where TService : class
+    public void AddTransient<TService, TImplementation>(Func<IBlackServiceProvider, TService>? factory = null) where TService : class
         where TImplementation : class, TService =>
         AddDescriptor<TService, TImplementation>(ServiceLifetime.Transient, factory);
-    
-    public void AddTransient<TService, TImplementation>(Func<TService> factory)
-        where TService : class where TImplementation : class, TService =>
-        AddTransient<TService, TImplementation>(_ => factory());
 
-    public void AddTransient(Type serviceType, Type implementationType) =>
+    public void AddTransient(Type serviceType, Type implementationType, Func<IBlackServiceProvider, object>? factory = null) =>
         ServiceDescriptors[serviceType] =
-            new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient);
+            new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient, factory);
 
-    public void AddTransient(Type serviceType) => AddTransient(serviceType, serviceType);
+    public void AddTransient(Type serviceType, Func<IBlackServiceProvider, object>? factory = null) =>
+        AddTransient(serviceType, serviceType, factory);
 
     public IEnumerator<KeyValuePair<Type, ServiceDescriptor>> GetEnumerator() => ServiceDescriptors.GetEnumerator();
 
