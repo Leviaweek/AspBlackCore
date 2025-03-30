@@ -17,7 +17,7 @@ public static class ServiceRegistration
             
             var baseType = GetBaseType(serviceType, attribute);
 
-            var factoryAttribute = GetFactoryMethodAttribute(serviceType);
+            var factoryAttribute = TryGetFactoryMethodAttribute(serviceType);
 
             var factory = TryGetFactory(factoryAttribute, serviceType);
 
@@ -29,7 +29,7 @@ public static class ServiceRegistration
         }
     }
 
-    private static FactoryMethodAttribute? GetFactoryMethodAttribute(Type serviceType)
+    private static FactoryMethodAttribute? TryGetFactoryMethodAttribute(Type serviceType)
     {
         var method = serviceType.GetMethod(FactoryMethodAttribute.Name, BindingFlags.Static | BindingFlags.Public);
 
