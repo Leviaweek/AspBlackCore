@@ -3,6 +3,8 @@ using BlackDependencyInjection;
 namespace DIAutoRegistration.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public sealed class TransientServiceAttribute<T>() : ServiceAttribute(ServiceLifetime.Transient, typeof(T));
 
-public sealed class TransientServiceAttribute(
-    Type? baseType = null) : ServiceAttribute(ServiceLifetime.Transient, baseType);
+
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public sealed class TransientServiceAttribute() : ServiceAttribute(ServiceLifetime.Transient, null);

@@ -74,17 +74,41 @@ public static class ServiceRegistration
     {
         var serviceType = attribute.BaseType;
 
-        if (serviceType is not null)
+        if (attribute.GetType().IsGenericType)
         {
+            serviceType = attribute.GetType().GetGenericArguments().First();
+            
             if (!implementationType.IsAssignableTo(serviceType))
             {
                 throw new InvalidOperationException(
-                    $"The service type {serviceType} is not assignable from the implementation type {implementationType}.");
+                    $"The service type {serviceType} is not assignable to the implementation type {implementationType}");
             }
+
+            return serviceType;
         }
-        else
+
+        if (serviceType is null)
         {
-            serviceType = implementationType;
+            var interfaces = implementationType.GetInterfaces();
+
+            if (interfaces.Length != 0)
+            {
+                return interfaces.First();
+            }
+            
+            var baseType = implementationType.BaseType;
+            
+            if (baseType == typeof(object))
+                return implementationType;
+            
+            throw new InvalidOperationException(
+                $"The service type {serviceType} is not assignable to the implementation type {implementationType}");
+        }
+        
+        if (!implementationType.IsAssignableTo(serviceType))
+        {
+            throw new InvalidOperationException(
+                $"The service type {serviceType} is not assignable to the implementation type {implementationType}");
         }
 
         return serviceType;

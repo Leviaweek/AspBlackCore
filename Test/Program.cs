@@ -22,11 +22,7 @@ app.MapPost("/", (CustomRequest request, string queryName, ITestType test) =>
 await app.StartAsync();
 
 
-public sealed record CustomRequest([property: JsonPropertyName("name")]string Name,
-    [property: JsonPropertyName("age")]int Age);
-
-
-[TransientService(typeof(ITestType))]
+[TransientService]
 public sealed record TestType(IBlackServiceProvider ServiceProvider): ITestType
 {
     [FactoryMethod]
@@ -41,3 +37,6 @@ public interface ITestType
 {
     IBlackServiceProvider ServiceProvider { get; }
 }
+
+public sealed record CustomRequest([property: JsonPropertyName("name")]string Name,
+    [property: JsonPropertyName("age")]int Age);
