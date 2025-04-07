@@ -2,7 +2,7 @@ using WebServer.Exceptions;
 
 namespace WebServer;
 
-public static class StreamThrowHelper
+internal static class StreamThrowHelper
 {
     public static void ThrowIfEndOfStream(int bytesRead)
     {

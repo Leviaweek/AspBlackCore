@@ -1,8 +1,8 @@
 using System.Reflection;
-using WebServer.Attributes;
-using WebServer.Enums;
+using AspBlackCore.Attributes;
+using AspBlackCore.Enums;
 
-namespace WebServer.Extensions;
+namespace AspBlackCore.Extensions;
 
 public static class HttpStatusCodeExtensions
 {

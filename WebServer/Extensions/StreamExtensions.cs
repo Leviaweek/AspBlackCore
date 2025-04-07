@@ -3,15 +3,14 @@ using WebServer.Exceptions;
 
 namespace WebServer.Extensions;
 
-public static class StreamExtensions
+internal static class StreamExtensions
 {
-    public static async Task<string> ReadLineAsync(this Stream stream, Encoding? encoding = null,
+    public static async Task<string> ReadLineAsync(this Stream stream, uint maxSize,
         CancellationToken cancellationToken = default)
     {
         var bytes = new byte[128];
         var foundR = false;
         var offset = 0;
-        encoding ??= Encoding.ASCII;
         
         while (true)
         {
@@ -38,7 +37,12 @@ public static class StreamExtensions
             }
     
             offset++;
+            
+            if (offset == maxSize)
+            {
+                throw new ParseRequestException("Line is too long");
+            }
         }
-        return offset == 0 ? string.Empty : encoding.GetString(bytes, 0, offset);
+        return offset == 0 ? string.Empty : Encoding.ASCII.GetString(bytes, 0, offset);
     }
 }

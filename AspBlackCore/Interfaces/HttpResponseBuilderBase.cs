@@ -1,23 +1,22 @@
-using System.Text;
-using WebServer.Enums;
-using WebServer.Extensions;
+using AspBlackCore.Enums;
+using AspBlackCore.Extensions;
 
-namespace WebServer;
+namespace AspBlackCore.Interfaces;
 
-public sealed class ResponseBuilder
+internal abstract class HttpResponseBuilderBase: IHttpResponseBuilder, IWriteable
 {
     private static readonly byte[] HttpVersion = "HTTP/1.1"u8.ToArray();
     private readonly Dictionary<string, string> _headers = new();
-    private byte[] _body = [];
+    protected byte[] Body = [];
 
     private HttpStatusCode _statusCode = HttpStatusCode.Ok;
 
-    public ResponseBuilder AddHeader(string key, string value)
+    public IHttpResponseBuilder AddHeader(string key, string value)
     {
         _headers[key] = value;
         return this;
     }
-    public ResponseBuilder SetHeaders(Dictionary<string, string> headers)
+    public IHttpResponseBuilder SetHeaders(Dictionary<string, string> headers)
     {
         foreach (var (key, value) in headers)
         {
@@ -26,23 +25,17 @@ public sealed class ResponseBuilder
         return this;
     }
 
-    public ResponseBuilder SetStatusCode(int statusCode) => SetStatusCode((HttpStatusCode) statusCode);
+    public abstract IHttpResponseBuilder SetBody<T>(T body);
 
-    public ResponseBuilder SetStatusCode(HttpStatusCode statusCode)
+    public IHttpResponseBuilder SetStatusCode(int statusCode) => SetStatusCode((HttpStatusCode) statusCode);
+
+    protected IHttpResponseBuilder SetStatusCode(HttpStatusCode statusCode)
     {
         _statusCode = statusCode;
         return this;
     }
 
-    public ResponseBuilder SetJsonBody(byte[] body)
-    {
-        AddHeader("Content-Type", "application/json");
-        AddHeader("Content-Length", body.Length.ToString());
-        _body = body;
-        return this;
-    }
-    
-    public async Task WriteAsync(Stream stream, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(Stream stream, CancellationToken cancellationToken)
     {
         await stream.WriteAsync(HttpVersion, cancellationToken);
         stream.WriteByte((byte)' ');
@@ -75,13 +68,13 @@ public sealed class ResponseBuilder
         
         AddEndLine(stream);
         
-        if (_body.Length > 0)
+        if (Body.Length > 0)
         {
-            await stream.WriteAsync(_body, cancellationToken);
+            await stream.WriteAsync(Body, cancellationToken);
         }
     }
 
-    private static void WriteAsciiString(Stream stream, string @string)
+    protected static void WriteAsciiString(Stream stream, string @string)
     {
         for (var index = 0; index < @string.Length; index++)
         {
@@ -90,7 +83,7 @@ public sealed class ResponseBuilder
         }
     }
 
-    private static void AddEndLine(Stream stream)
+    protected static void AddEndLine(Stream stream)
     {
         stream.WriteByte((byte)'\r');
         stream.WriteByte((byte)'\n');

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using BlackDependencyInjection.Base;
 using BlackDependencyInjection.Interfaces;
 
 namespace BlackDependencyInjection;

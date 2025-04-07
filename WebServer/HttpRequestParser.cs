@@ -6,21 +6,26 @@ using WebServer.Models;
 
 namespace WebServer;
 
-public sealed class HttpRequestParser
+internal sealed class HttpRequestParser
 {
-    internal readonly int MaxBodySize;
+    internal readonly uint MaxBodySize;
+    internal const uint MaxFirstLineSize = 1024 * 8;
+    internal const uint MaxHeadersLength = 1024 * 16;
 
     private delegate Task<byte[]> ParseBodyAsyncDelegate(Stream stream,
         Dictionary<string, string> headers,
         CancellationToken cancellationToken);
 
-    private readonly Dictionary<string, ParseBodyAsyncDelegate> _contentTypeHandlers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ParseBodyAsyncDelegate> _contentTypeHandlers =
+        new(StringComparer.OrdinalIgnoreCase);
 
-    public HttpRequestParser(int maxBodySize)
+    public HttpRequestParser(uint maxBodySize)
     {
         MaxBodySize = maxBodySize;
         RegisterHandlers();
     }
+
+    public HttpRequestParser() : this(1024 * 1024 * 25) { }
 
     private void RegisterContentTypeHandler(string contentType, ParseBodyAsyncDelegate handler) =>
         _contentTypeHandlers[contentType] = handler;
@@ -41,7 +46,7 @@ public sealed class HttpRequestParser
         }
     }
     
-    public async Task<Request> ParseRequestAsync(Stream stream, CancellationToken cancellationToken)
+    public async Task<JsonRequest> ParseRequestAsync(Stream stream, CancellationToken cancellationToken)
     {
             using var src = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             
@@ -49,7 +54,7 @@ public sealed class HttpRequestParser
             
             var token = linked.Token;
 
-            var firstLine = await stream.ReadLineAsync(cancellationToken: token);
+            var firstLine = await stream.ReadLineAsync(MaxFirstLineSize, cancellationToken);
 
             firstLine = ValidateLine(firstLine);
 
@@ -84,16 +89,19 @@ public sealed class HttpRequestParser
                 bytes = [];
             }
             
-            return new Request(method, path, version, queries, headers, bytes);
+            return new JsonRequest(method, path, queries, headers, bytes);
     }
 
-    private static async Task<Dictionary<string, string>> ParseHeadersAsync(Stream stream, CancellationToken cancellationToken)
+    private static async Task<Dictionary<string, string>> ParseHeadersAsync(Stream stream,
+        CancellationToken cancellationToken)
     {
         string? line;
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            
-        while (!string.IsNullOrWhiteSpace(line = await stream.ReadLineAsync(cancellationToken: cancellationToken)))
+        var allHeadersLength = 0;
+        while (!string.IsNullOrWhiteSpace(line = await stream.ReadLineAsync(MaxHeadersLength, cancellationToken)))
         {
+            allHeadersLength += line.Length;
+            if (allHeadersLength > MaxHeadersLength) throw new ParseRequestException("Headers too large");
             if (line.Split(": ", 2) is not { Length: 2 } header) throw new ParseRequestException("Invalid header");
 
             headers[header[0]] = header[1];

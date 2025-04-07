@@ -1,8 +1,9 @@
+using BlackDependencyInjection.Base;
 using BlackDependencyInjection.Interfaces;
 
 namespace BlackDependencyInjection;
 
-public class RootBlackServiceProvider : BlackServiceProviderBase
+public class RootBlackServiceProvider : BlackServiceProviderBase, IDisposable
 {
     internal readonly Dictionary<Type, object> SingletonServices = new();
     public RootBlackServiceProvider(IBlackServiceCollection blackServiceCollection) : base(blackServiceCollection) { }
@@ -31,6 +32,25 @@ public class RootBlackServiceProvider : BlackServiceProviderBase
                 throw new InvalidOperationException("Lifetime not found");
         }
     }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        foreach (var service in SingletonServices.Values)
+        {
+            if (this == service) continue;
+            
+            if (service is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+        SingletonServices.Clear();
+    }
+    ~RootBlackServiceProvider()
+    {
+        Dispose();
+    }
 }
 
 public abstract class DependencyInjectionException(string? message = null) : Exception(message);
@@ -38,3 +58,6 @@ public sealed class InvalidProviderException(
     IBlackServiceProvider provider,
     ServiceDescriptor descriptor)
     : DependencyInjectionException($"Provider {provider.GetType().FullName} is invalid for service {descriptor.ServiceType}");
+    
+public sealed class CircularDependencyException(ServiceDescriptor serviceDescriptor)
+    : DependencyInjectionException($"Circular dependency detected for service {serviceDescriptor.ServiceType}");

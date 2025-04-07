@@ -1,6 +1,6 @@
 using BlackDependencyInjection.Interfaces;
 
-namespace BlackDependencyInjection;
+namespace BlackDependencyInjection.Base;
 
 public sealed class ServiceDescriptor
 {

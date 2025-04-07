@@ -1,6 +1,6 @@
-using WebServer.Attributes;
+using AspBlackCore.Attributes;
 
-namespace WebServer.Enums;
+namespace AspBlackCore.Enums;
 
 public enum HttpStatusCode
 {

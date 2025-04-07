@@ -1,5 +1,5 @@
 using System.Reflection;
-using BlackDependencyInjection;
+using BlackDependencyInjection.Base;
 using BlackDependencyInjection.Interfaces;
 using DIAutoRegistration.Attributes;
 

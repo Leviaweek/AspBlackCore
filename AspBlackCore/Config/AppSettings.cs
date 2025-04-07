@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace AspBlackCore;
+namespace AspBlackCore.Config;
 
 public sealed class AppSettings
 {

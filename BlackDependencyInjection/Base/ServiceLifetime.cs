@@ -1,4 +1,4 @@
-namespace BlackDependencyInjection;
+namespace BlackDependencyInjection.Base;
 
 public enum ServiceLifetime: byte
 {

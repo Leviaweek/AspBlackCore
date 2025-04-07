@@ -1,4 +1,4 @@
-﻿using BlackDependencyInjection;
+﻿using BlackDependencyInjection.Base;
 
 namespace DIAutoRegistration.Attributes;
 

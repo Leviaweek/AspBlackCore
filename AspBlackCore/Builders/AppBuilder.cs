@@ -1,8 +1,13 @@
 ﻿using System.Text.Json;
+using System.Threading.Channels;
+using AspBlackCore.Config;
+using AspBlackCore.Dispatchers;
+using AspBlackCore.Handlers;
 using BlackDependencyInjection;
 using BlackDependencyInjection.Interfaces;
+using WebServer;
 
-namespace AspBlackCore;
+namespace AspBlackCore.Builders;
 
 public sealed class AppBuilder
 {
@@ -26,8 +31,16 @@ public sealed class AppBuilder
         Services.AddSingleton<IBlackServiceProvider>(serviceProvider);
         Services.AddSingleton(Services);
         
-        Services.AddScoped<CancellationTokenSource>();
-
+        Services.AddSingleton<MiddlewarePipelineBuilder>();
+        Services.AddSingleton<MinimalApiRequestHandler>();
+        Services.AddSingleton<MinimalApiDispatcher>();
+        
+        if (serviceProvider.GetService(typeof(ControllerDispatcher)) is null)
+        {
+            Services.AddSingleton<ControllerRequestHandler>();
+            Services.AddSingleton<ControllerDispatcher>();
+        }
+        
         var filePath = Path.Combine(Directory.GetCurrentDirectory(), AppSettings.FileName);
         Dictionary<string, JsonElement>? serialized;
         if (!File.Exists(filePath))
@@ -40,10 +53,17 @@ public sealed class AppBuilder
             serialized = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(fileContent);
         }
         
-        WebServer.WebServer server;
+        BlackWebServer server;
+        
+        var channel = Channel.CreateUnbounded<BlackWebServerRequestCell>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = true
+        });
+        
         if (serialized is null)
         {
-            server = new WebServer.WebServer(serviceProvider);
+            server = new BlackWebServer(channel.Writer);
         }
         else
         {
@@ -52,9 +72,10 @@ public sealed class AppBuilder
                 Settings = serialized
             };
             var webServerSettings = settings.WebServerSettings;
-            server = new WebServer.WebServer(webServerSettings.IpAddress, webServerSettings.Port, serviceProvider);
+            server = new BlackWebServer(webServerSettings.IpAddress, webServerSettings.Port,
+                channel.Writer);
         }
 
-        return new App(serviceProvider, server);
+        return new App(serviceProvider, server, channel.Reader);
     }
 }

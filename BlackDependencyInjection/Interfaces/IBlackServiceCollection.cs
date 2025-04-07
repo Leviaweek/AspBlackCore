@@ -1,8 +1,9 @@
+using BlackDependencyInjection.Base;
+
 namespace BlackDependencyInjection.Interfaces;
 
 public interface IBlackServiceCollection: IDictionary<Type, ServiceDescriptor>
 {
-    
     public void AddSingleton<TService>(TService service) where TService : class;
     public void AddSingleton<TService>(Func<IBlackServiceProvider, TService>? factory = null) where TService : class;
     

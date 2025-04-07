@@ -1,4 +1,4 @@
-namespace WebServer.Enums;
+namespace AspBlackCore.Enums;
 
 public enum HttpMethod
 {

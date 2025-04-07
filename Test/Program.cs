@@ -1,42 +1,14 @@
-﻿using System.Text.Json.Serialization;
-using AspBlackCore;
-using BlackDependencyInjection.Interfaces;
+﻿using AspBlackCore.Builders;
+using AspBlackCore.Extensions;
 using DIAutoRegistration;
-using DIAutoRegistration.Attributes;
 
 var builder = new AppBuilder();
 
 builder.Services.RegisterAllServices();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
-app.MapPost("/", (CustomRequest request, string queryName, ITestType test) =>
-{
-    Console.WriteLine(queryName);
-    Console.WriteLine(request);
-    Console.WriteLine(test);
-    Console.WriteLine(test.ServiceProvider.GetType().FullName);
-});
+app.UseRouting();
 
 await app.StartAsync();
-
-
-[TransientService]
-public sealed record TestType(IBlackServiceProvider ServiceProvider): ITestType
-{
-    [FactoryMethod]
-    public static TestType Create(IBlackServiceProvider serviceProvider)
-    {
-        Console.WriteLine("Creating TestType");
-        return new TestType(serviceProvider);
-    }
-}
-
-public interface ITestType
-{
-    IBlackServiceProvider ServiceProvider { get; }
-}
-
-public sealed record CustomRequest([property: JsonPropertyName("name")]string Name,
-    [property: JsonPropertyName("age")]int Age);

@@ -1,3 +1,4 @@
+using BlackDependencyInjection.Base;
 using BlackDependencyInjection.Interfaces;
 
 namespace BlackDependencyInjection;

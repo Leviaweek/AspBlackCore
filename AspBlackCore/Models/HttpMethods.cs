@@ -1,6 +1,6 @@
-using HttpMethod = WebServer.Enums.HttpMethod;
+using HttpMethod = AspBlackCore.Enums.HttpMethod;
 
-namespace WebServer.Models;
+namespace AspBlackCore.Models;
 
 public static class HttpMethods
 {
